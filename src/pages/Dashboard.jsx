@@ -1,6 +1,8 @@
-// src/pages/Dashboard.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import teacherImg from "../assets/teacher.svg";
+import studentImg from "../assets/students.svg";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -28,35 +30,32 @@ export default function Dashboard() {
     fetchData();
   }, [navigate]);
 
-  const handleLogout = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/api/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-      if (res.ok) {
-        navigate("/login");
-      }
-    } catch (error) {
-      console.error("Erro ao deslogar:", error);
-    }
-  };
-
   return (
-    <main className="flex justify-center items-center min-h-screen bg-gray-50">
-      <div className="max-w-lg w-full bg-white shadow-md rounded p-6 text-center">
+    <main className="flex justify-center mt-2 bg-[#E3CCAE]">
+      <div className="container w-full bg-[#E3CCAE] shadow-md rounded p-6 text-center">
         <h1 className="text-3xl font-bold mb-4">
-          Bem-vindo{user ? `, ${user.name}` : ""}
+          Bem-vindo ao <span className="text-[#B8621B]">SentiMente</span>
+          {user ? `, ${user.name}` : ""}
         </h1>
-        <p className="text-sm text-gray-600 mb-6">
-          {user && `ID do usuário: ${user.id}`}
-        </p>
-        <button
-          onClick={handleLogout}
-          className="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors"
-        >
-          Sair
-        </button>
+        <p className="font-semibold">Selecione</p>
+        <div className="flex items-center justify-around mt-20 flex-wrap gap-8">
+          <div>
+            <img
+              src={teacherImg}
+              alt="Imagem de um professor segurando um livro"
+              className="mb-6"
+            />
+            <button className="bg-[#F4E5D0] hover:bg-[#F5DDBB] text-black py-1 px-8 rounded cursor-pointer">
+              Acessar turmas
+            </button>
+          </div>
+          <div>
+            <img src={studentImg} alt="Imagem de alunos pulando" />
+            <button className="bg-[#F4E5D0] hover:bg-[#F5DDBB] text-black py-1 px-8 rounded cursor-pointer">
+              Criar turmas
+            </button>
+          </div>
+        </div>
       </div>
     </main>
   );

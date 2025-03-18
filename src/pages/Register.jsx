@@ -6,11 +6,19 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState(""); // Novo estado para confirmação
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    // Validação de senha e confirmação
+    if (password !== confirmPassword) {
+      setError("As senhas não correspondem.");
+      return;
+    }
+
     try {
       const res = await fetch("http://localhost:5000/api/register", {
         method: "POST",
@@ -38,7 +46,7 @@ export default function Register() {
             <input
               id="name"
               type="text"
-              className="w-full mt-1 p-2 bg-[#F4E5D0] rounded-xl outline-none"
+              className="w-full mt-1 p-2 bg-[#F4E5D0] rounded-md outline-none"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -49,7 +57,7 @@ export default function Register() {
             <input
               id="email"
               type="email"
-              className="w-full mt-1 p-2 bg-[#F4E5D0] rounded-xl outline-none"
+              className="w-full mt-1 p-2 bg-[#F4E5D0] rounded-md outline-none"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -60,11 +68,22 @@ export default function Register() {
             <input
               id="password"
               type="password"
-              className="w-full mt-1 p-2 bg-[#F4E5D0] rounded-xl outline-none"
+              className="w-full mt-1 p-2 bg-[#F4E5D0] rounded-md outline-none"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="senha"
+            />
+          </div>
+          <div>
+            <input
+              id="confirm-password"
+              type="password"
+              className="w-full mt-1 p-2 bg-[#F4E5D0] rounded-md outline-none"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              placeholder="confirme sua senha"
             />
           </div>
           <button
@@ -73,7 +92,7 @@ export default function Register() {
           >
             Registrar
           </button>
-          <div className="text-right">
+          <div className="text-left">
             <Link
               to="/login"
               className="text-sm text-indigo-600 hover:underline"
