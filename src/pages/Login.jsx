@@ -2,6 +2,7 @@
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { API_URL } from "../config";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,7 +14,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -23,7 +24,8 @@ export default function Login() {
       if (!res.ok) {
         setError(data.error);
       } else {
-        login(); // Atualiza o estado global de autenticação
+        localStorage.setItem("token", data.token);
+        login();
         navigate("/dashboard");
       }
     } catch (err) {

@@ -1,10 +1,14 @@
 // src/App.jsx
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import CreateClass from "./pages/CreateClass";
+import Classes from "./pages/Classes";
+import ClassAnalytics from "./pages/ClassAnalytics";
+import EmotionSelection from "./pages/EmotionSelection";
 
 function App() {
   return (
@@ -15,9 +19,19 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/create-class" element={<CreateClass />} />
+          <Route path="/classes" element={<Classes />} />
+          <Route
+            path="/class-analytics/:classId"
+            element={<ClassAnalytics />}
+          />
+          <Route
+            path="/emotion-selection/:classId/:studentId"
+            element={<EmotionSelection />}
+          />
+          <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </div>
-
       <Footer />
     </div>
   );

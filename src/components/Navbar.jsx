@@ -1,6 +1,8 @@
+// src/components/Navbar.jsx
 import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { API_URL } from "../config";
 
 export default function Navbar() {
   const { isAuthenticated, logout } = useContext(AuthContext);
@@ -8,7 +10,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:5000/api/logout", {
+      await fetch(`${API_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -20,18 +22,19 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-[#F4E5D0] text-white shadow py-4">
+    <nav className="bg-[#F4E5D0] shadow py-4">
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
-        {/* Nome do App */}
-        <Link to="/dashboard" className="text-2xl text-[#B8621B] font-bold">
+        <Link to="/" className="text-2xl font-bold text-[#B8621B]">
           SentiMente
         </Link>
 
-        {/* Exibir itens somente se estiver autenticado */}
-        {isAuthenticated ? (
+        {isAuthenticated && (
           <div className="flex items-center space-x-4">
             <Link to="/dashboard" className="text-black hover:text-gray-500">
-              Dashboard
+              Início
+            </Link>
+            <Link to="/classes" className="text-black hover:text-gray-500">
+              Turmas
             </Link>
             <button
               onClick={handleLogout}
@@ -40,7 +43,7 @@ export default function Navbar() {
               Sair
             </button>
           </div>
-        ) : null}
+        )}
       </div>
     </nav>
   );

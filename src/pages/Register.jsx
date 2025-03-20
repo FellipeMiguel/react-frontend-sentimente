@@ -1,6 +1,7 @@
 // src/pages/Register.jsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { API_URL } from "../config";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -13,14 +14,14 @@ export default function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    // Validação de senha e confirmação
+    // Validação de senha e sua confirmação
     if (password !== confirmPassword) {
       setError("As senhas não correspondem.");
       return;
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/register", {
+      const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
