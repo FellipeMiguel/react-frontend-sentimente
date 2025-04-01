@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { API_URL } from "../config";
 import happyImg from "../assets/emotion/happy.svg";
 import sadImg from "../assets/emotion/sad.svg";
@@ -17,6 +17,7 @@ import sensitiveImg from "../assets/emotion/sensitive.svg";
 import confidentImg from "../assets/emotion/confident.svg";
 import stressedImg from "../assets/emotion/stressed.svg";
 import accomplishedImg from "../assets/emotion/accomplished.svg";
+import { FaArrowAltCircleDown, FaArrowAltCircleRight } from "react-icons/fa";
 
 const fixedEmotions = [
   { label: "Feliz", image: happyImg },
@@ -37,50 +38,76 @@ const fixedEmotions = [
   { label: "Realizado", image: accomplishedImg },
 ];
 
+// Função auxiliar para formatar a data de YYYY-MM-DD para DD/MM/YYYY
+const formatDate = (dateStr) => {
+  const parts = dateStr.split("-");
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+};
+
 export default function ClassAnalytics() {
-  // Agora 'dates' é um array de objetos com _id e date
+  const { classId: paramClassId } = useParams();
   const [dates, setDates] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [votes, setVotes] = useState({});
   const [students, setStudents] = useState([]);
   const [newDate, setNewDate] = useState("");
-  const [classId, setClassId] = useState(null);
+  const [classId, setClassId] = useState(paramClassId || null);
+  const [className, setClassName] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Buscar turma e alunos do professor
-    fetch(`${API_URL}/classes`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        // Supondo que o endpoint retorne um array de classes
-        if (Array.isArray(data) && data.length > 0) {
-          setClassId(data[0]._id);
-          setStudents(data[0].students || []);
-        }
+    // Se classId veio pela URL, usamos ele; senão, buscamos a primeira turma
+    if (classId) {
+      fetch(`${API_URL}/classes/${classId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       })
-      .catch((err) => console.error("Erro ao buscar alunos:", err));
+        .then((res) => res.json())
+        .then((data) => {
+          setClassName(data.name);
+          setStudents(data.students || []);
+        })
+        .catch((err) => console.error("Erro ao buscar turma:", err));
+    } else {
+      fetch(`${API_URL}/classes`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setClassId(data[0]._id);
+            setClassName(data[0].name);
+            setStudents(data[0].students || []);
+          }
+        })
+        .catch((err) => console.error("Erro ao buscar turmas:", err));
+    }
+  }, [classId]);
 
-    // Buscar datas salvas do professor no backend
-    fetch(`${API_URL}/dates`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        // O endpoint retorna um array de registros: { _id, teacher, date }
-        setDates(data);
+  useEffect(() => {
+    // Buscar datas para a turma específica
+    if (classId) {
+      fetch(`${API_URL}/dates?classId=${classId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       })
-      .catch((err) => console.error("Erro ao buscar datas:", err));
-  }, []);
+        .then((res) => res.json())
+        .then((data) => {
+          setDates(data);
+        })
+        .catch((err) => console.error("Erro ao buscar datas:", err));
+    }
+  }, [classId]);
 
   useEffect(() => {
     // Ao selecionar uma data, busca os votos daquela data no backend
@@ -97,7 +124,6 @@ export default function ClassAnalytics() {
       )
         .then((res) => res.json())
         .then((data) => {
-          // Supondo que o endpoint retorne { votes: { "Feliz": 5, "Triste": 3, ... } }
           setVotes(data.votes);
         })
         .catch((err) => console.error("Erro ao buscar votos:", err));
@@ -113,11 +139,10 @@ export default function ClassAnalytics() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify({ date: newDate }),
+          body: JSON.stringify({ date: newDate, classId }),
         });
         if (res.ok) {
           const result = await res.json();
-          // result.newDate é um objeto com _id, teacher e date
           setDates(
             [...dates, result.newDate].sort((a, b) =>
               a.date.localeCompare(b.date)
@@ -132,23 +157,24 @@ export default function ClassAnalytics() {
   };
 
   const deleteDate = async (id) => {
-    try {
-      const res = await fetch(`${API_URL}/dates/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      if (res.ok) {
-        setDates(dates.filter((d) => d._id !== id));
-        // Se a data excluída estava selecionada, des-seleciona
-        if (selectedDate && selectedDate._id === id) {
-          setSelectedDate(null);
+    if (window.confirm("Deseja realmente excluir essa data?")) {
+      try {
+        const res = await fetch(`${API_URL}/dates/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        if (res.ok) {
+          setDates(dates.filter((d) => d._id !== id));
+          if (selectedDate && selectedDate._id === id) {
+            setSelectedDate(null);
+          }
         }
+      } catch (error) {
+        console.error("Erro ao excluir data:", error);
       }
-    } catch (error) {
-      console.error("Erro ao excluir data:", error);
     }
   };
 
@@ -160,15 +186,13 @@ export default function ClassAnalytics() {
 
   // Redireciona para /emotion-selection/:classId/:studentId
   const selectStudent = (student) => {
-    if (classId) {
-      navigate(`/emotion-selection/${classId}/${student._id}`);
-    } else {
-      console.error("ID da turma não definido.");
-    }
+    navigate(`/emotion-selection/${classId}/${student._id}`);
   };
 
   return (
     <main className="container mx-auto mt-2 shadow p-4 rounded-b-sm">
+      {/* Título com o nome da turma */}
+      <h1 className="text-3xl font-bold text-center mb-4">{className}</h1>
       <div className="flex items-center">
         <input
           type="date"
@@ -188,10 +212,17 @@ export default function ClassAnalytics() {
           <div key={dateObj._id}>
             <div className="flex items-center gap-2">
               <button
-                className="mt-2 text-black py-2 px-4 rounded cursor-pointer"
+                className="mt-2 text-black py-2 px-4 rounded cursor-pointer flex items-center"
                 onClick={() => selectDate(dateObj)}
               >
-                {dateObj.date} ▼
+                {formatDate(dateObj.date)}
+                <span className="ml-2">
+                  {selectedDate && selectedDate._id === dateObj._id ? (
+                    <FaArrowAltCircleDown />
+                  ) : (
+                    <FaArrowAltCircleRight />
+                  )}
+                </span>
               </button>
               <button
                 onClick={() => deleteDate(dateObj._id)}
@@ -201,7 +232,10 @@ export default function ClassAnalytics() {
               </button>
             </div>
             {selectedDate && selectedDate._id === dateObj._id && (
-              <div className="mt-2">
+              <div
+                className="mt-2 transition-all duration-300 ease-in-out"
+                style={{ overflow: "hidden" }}
+              >
                 {/* Lista de Alunos */}
                 <div className="flex gap-4 flex-wrap">
                   {students.map((student, i) => (
@@ -218,6 +252,11 @@ export default function ClassAnalytics() {
                 {/* Barra de Progresso das Emoções */}
                 <div className="grid grid-cols-4 gap-6 mt-4">
                   {fixedEmotions.map(({ label, image }) => {
+                    const voteCount = votes[label] || 0;
+                    const totalStudents = students.length;
+                    const percentage = totalStudents
+                      ? (voteCount / totalStudents) * 100
+                      : 0;
                     return (
                       <div key={label} className="text-center">
                         <img
@@ -228,14 +267,10 @@ export default function ClassAnalytics() {
                         <div className="relative h-4 w-full bg-[#F4E5D0] mt-2 rounded-md">
                           <div
                             className="h-full bg-[#262A56] rounded-md"
-                            style={{
-                              width: `${
-                                ((votes[label] || 0) / students.length) * 100
-                              }%`,
-                            }}
+                            style={{ width: `${percentage}%` }}
                           ></div>
                           <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-[#B8621B]">
-                            {votes[label] || 0}/{students.length}
+                            {voteCount}/{totalStudents}
                           </span>
                         </div>
                         <p>{label}</p>

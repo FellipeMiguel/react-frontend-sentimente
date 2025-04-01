@@ -121,7 +121,7 @@ export default function CreateClass() {
                   <button
                     type="button"
                     onClick={() => removeStudentField(index)}
-                    className="ml-2 text-[#B8621B]"
+                    className="ml-2 text-[#B8621B] cursor-pointer"
                   >
                     Excluir
                   </button>
@@ -131,7 +131,7 @@ export default function CreateClass() {
             <button
               type="button"
               onClick={addStudentField}
-              className="mt-2 text-blue-500 hover:underline"
+              className="mt-2 text-blue-500 hover:underline cursor-pointer"
             >
               Adicionar Aluno
             </button>

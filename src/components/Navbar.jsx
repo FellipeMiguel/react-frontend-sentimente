@@ -23,7 +23,7 @@ export default function Navbar() {
   return (
     <nav className="bg-[#F4E5D0] shadow py-4">
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold text-[#B8621B]">
+        <Link to="/dashboard" className="text-2xl font-bold text-[#B8621B]">
           SentiMente
         </Link>
 
