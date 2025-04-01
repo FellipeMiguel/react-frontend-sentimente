@@ -13,11 +13,11 @@ export default function Navbar() {
         method: "POST",
         credentials: "include",
       });
-      logout(); // Atualiza o estado global de autenticação
-      navigate("/login");
     } catch (error) {
       console.error("Erro ao sair:", error);
     }
+    logout();
+    navigate("/login");
   };
 
   return (

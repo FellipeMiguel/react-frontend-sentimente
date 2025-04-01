@@ -33,7 +33,7 @@ export default function Login() {
   };
 
   return (
-    <main className="flex items-center justify-center container mt-6 shadow mx-auto py-30">
+    <main className="flex items-center justify-center container mt-2 shadow mx-auto py-30">
       <div className="max-w-md w-full py-6 rounded">
         <h1 className="text-2xl font-bold mb-4 text-center">
           Entre no Sistema

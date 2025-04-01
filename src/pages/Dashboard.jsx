@@ -13,7 +13,7 @@ export default function Dashboard() {
     const fetchData = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        navigate("/auth/login");
+        navigate("/login");
         return;
       }
 
@@ -26,18 +26,17 @@ export default function Dashboard() {
           },
         });
 
-        console.log("Response status:", res.status);
         if (!res.ok) {
-          console.error("Unauthorized ou erro, redirecionando para login.");
-          navigate("/auth/login");
-        } else {
-          const data = await res.json();
-          console.log("Dados recebidos:", data);
-          setUser(data.user);
+          // Se a resposta não for ok, redireciona para a tela de login
+          navigate("/login");
+          return;
         }
+
+        const data = await res.json();
+        setUser(data.user);
       } catch (error) {
         console.error("Erro ao buscar o usuário:", error);
-        navigate("/auth/login");
+        navigate("/login");
       }
     };
 
@@ -64,8 +63,8 @@ export default function Dashboard() {
     <main className="flex justify-center mt-2 bg-[#E3CCAE]">
       <div className="container w-full bg-[#E3CCAE] shadow-md rounded p-6 text-center">
         <h1 className="text-3xl font-bold mb-4">
-          Bem-vindo ao <span className="text-[#B8621B]">SentiMente</span>
-          {user ? `, ${user.name}` : ""}
+          Bem-vindo ao <span className="text-[#B8621B]">SentiMente</span>,{" "}
+          {user.name}
         </h1>
         <p className="font-semibold">Selecione</p>
         <div className="flex items-center justify-around mt-20 flex-wrap gap-8">

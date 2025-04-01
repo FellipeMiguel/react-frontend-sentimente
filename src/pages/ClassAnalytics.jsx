@@ -225,9 +225,9 @@ export default function ClassAnalytics() {
                           alt={label}
                           className="mx-auto w-12 h-12"
                         />
-                        <div className="relative h-6 w-full bg-gray-300 mt-2">
+                        <div className="relative h-4 w-full bg-[#F4E5D0] mt-2 rounded-md">
                           <div
-                            className="h-full bg-[#262A56]"
+                            className="h-full bg-[#262A56] rounded-md"
                             style={{
                               width: `${
                                 ((votes[label] || 0) / students.length) * 100
