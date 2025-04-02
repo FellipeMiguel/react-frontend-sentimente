@@ -17,7 +17,7 @@ export default function Navbar() {
       console.error("Erro ao sair:", error);
     }
     logout();
-    navigate("/login");
+    navigate("/");
   };
 
   return (
