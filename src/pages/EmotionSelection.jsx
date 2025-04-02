@@ -88,12 +88,11 @@ export default function EmotionSelection() {
 
   return (
     <div className="flex flex-col shadow container mx-auto mt-2 bg-[#E3CCAE]">
-      {/* Conteúdo Principal */}
-      <main className="flex flex-col flex-grow items-center justify-center p-6 py-30">
+      <main className="flex flex-col flex-grow items-center justify-center p-6 py-10 lg:py-30">
         <h2 className="text-xl font-semibold mb-4">
           Como você está se sentindo hoje?
         </h2>
-        <div className="flex flex-wrap gap-10 px-30">
+        <div className="flex flex-wrap gap-4 lg:gap-10 px-10 lg:px-30">
           {emotions.map((item, index) => (
             <button
               key={index}
