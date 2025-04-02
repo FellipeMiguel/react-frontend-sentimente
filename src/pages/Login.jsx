@@ -39,7 +39,7 @@ export default function Login() {
           Entre no Sistema
         </h1>
         {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4 px-4">
           <div>
             <input
               id="email"
