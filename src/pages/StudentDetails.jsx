@@ -6,7 +6,7 @@ export default function StudentsPage() {
   const { classId } = useParams();
   const [className, setClassName] = useState("");
   const [students, setStudents] = useState([]);
-  const [historyMap, setHistoryMap] = useState({}); // { [studentId]: [{ date, emotion }, …] }
+  const [historyMap, setHistoryMap] = useState({});
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -22,6 +22,7 @@ export default function StudentsPage() {
   useEffect(() => {
     fetch(`${API_URL}/classes/${classId}`, {
       headers: { Authorization: `Bearer ${token}` },
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     })
       .then((res) => res.json())
       .then((cls) => {
