@@ -45,7 +45,7 @@ export default function StudentsPage() {
           headers: { Authorization: `Bearer ${token}` },
         })
           .then((res) => res.json())
-          .then((hist) => ({ id: s._id, history: hist }))
+          .then((hist) => ({ id: s._id, history: hist.emotions || [] }))
       )
     )
       .then((results) => {
