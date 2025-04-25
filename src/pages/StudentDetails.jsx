@@ -13,7 +13,6 @@ export default function StudentsPage() {
   const token = localStorage.getItem("token");
   if (!token) navigate("/login");
 
-  // formata "YYYY-MM-DDT…​" para "DD/MM/YYYY"
   const formatDate = (iso) => {
     const [y, m, d] = iso.split("T")[0].split("-");
     return `${d}/${m}/${y}`;

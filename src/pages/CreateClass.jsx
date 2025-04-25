@@ -8,6 +8,7 @@ export default function CreateClass() {
   const [students, setStudents] = useState([{ name: "" }]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   // Atualiza o nome de um aluno na posição index
@@ -40,7 +41,9 @@ export default function CreateClass() {
 
   const handleCreateClass = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError("");
+    setIsSubmitting(true);
     setSuccess("");
 
     if (!className.trim()) {
@@ -73,7 +76,8 @@ export default function CreateClass() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error);
+        setError(data.error || "Erro ao criar turma.");
+        setIsSubmitting(false);
       } else {
         setSuccess("Turma criada com sucesso!");
         setTimeout(() => {
@@ -82,6 +86,7 @@ export default function CreateClass() {
       }
     } catch (err) {
       setError("Erro ao conectar ao servidor.", err);
+      setIsSubmitting(false);
     }
   };
 
