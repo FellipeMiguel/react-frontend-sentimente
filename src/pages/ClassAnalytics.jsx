@@ -38,25 +38,24 @@ const fixedEmotions = [
   { label: "Realizado", image: accomplishedImg },
 ];
 
-// Função auxiliar para formatar a data de YYYY-MM-DD para DD/MM/YYYY
+// Formata YYYY-MM-DD para DD/MM/YYYY
 const formatDate = (dateStr) => {
-  const parts = dateStr.split("-");
-  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  const [year, month, day] = dateStr.split("-");
+  return `${day}/${month}/${year}`;
 };
 
 export default function ClassAnalytics() {
   const { classId: paramClassId } = useParams();
+  const [classId, setClassId] = useState(paramClassId || null);
+  const [className, setClassName] = useState("");
+  const [students, setStudents] = useState([]);
   const [dates, setDates] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [votes, setVotes] = useState({});
-  const [students, setStudents] = useState([]);
-  const [newDate, setNewDate] = useState("");
-  const [classId, setClassId] = useState(paramClassId || null);
-  const [className, setClassName] = useState("");
   const navigate = useNavigate();
 
+  // Busca a turma e alunos
   useEffect(() => {
-    // Se classId veio pela URL, usamos ele; senão, buscamos a primeira turma
     if (classId) {
       fetch(`${API_URL}/classes/${classId}`, {
         method: "GET",
@@ -71,28 +70,11 @@ export default function ClassAnalytics() {
           setStudents(data.students || []);
         })
         .catch((err) => console.error("Erro ao buscar turma:", err));
-    } else {
-      fetch(`${API_URL}/classes`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (Array.isArray(data) && data.length > 0) {
-            setClassId(data[0]._id);
-            setClassName(data[0].name);
-            setStudents(data[0].students || []);
-          }
-        })
-        .catch((err) => console.error("Erro ao buscar turmas:", err));
     }
   }, [classId]);
 
+  // Busca datas para a turma específica (ordenadas da mais nova para a mais antiga)
   useEffect(() => {
-    // Buscar datas para a turma específica
     if (classId) {
       fetch(`${API_URL}/dates?classId=${classId}`, {
         method: "GET",
@@ -103,14 +85,17 @@ export default function ClassAnalytics() {
       })
         .then((res) => res.json())
         .then((data) => {
-          setDates(data);
+          const sorted = data.sort((a, b) => b.date.localeCompare(a.date));
+          setDates(sorted);
+          // Abre a última data adicionada automaticamente
+          setSelectedDate(sorted[0] || null);
         })
         .catch((err) => console.error("Erro ao buscar datas:", err));
     }
   }, [classId]);
 
+  // Busca votos para a data selecionada
   useEffect(() => {
-    // Ao selecionar uma data, busca os votos daquela data no backend
     if (selectedDate && classId) {
       fetch(
         `${API_URL}/emotions?date=${selectedDate.date}&classId=${classId}`,
@@ -123,15 +108,15 @@ export default function ClassAnalytics() {
         }
       )
         .then((res) => res.json())
-        .then((data) => {
-          setVotes(data.votes);
-        })
+        .then((data) => setVotes(data.votes || {}))
         .catch((err) => console.error("Erro ao buscar votos:", err));
     }
   }, [selectedDate, classId]);
 
+  // Adiciona a data atual (sem input)
   const addDate = async () => {
-    if (newDate && !dates.some((d) => d.date === newDate)) {
+    const today = new Date().toISOString().split("T")[0];
+    if (!dates.some((d) => d.date === today)) {
       try {
         const res = await fetch(`${API_URL}/dates`, {
           method: "POST",
@@ -139,16 +124,14 @@ export default function ClassAnalytics() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify({ date: newDate, classId }),
+          body: JSON.stringify({ date: today, classId }),
         });
         if (res.ok) {
           const result = await res.json();
-          setDates(
-            [...dates, result.newDate].sort((a, b) =>
-              a.date.localeCompare(b.date)
-            )
-          );
-          setNewDate("");
+          const updated = [result.newDate, ...dates];
+          setDates(updated);
+          // Seleciona a data recém-adicionada
+          setSelectedDate(result.newDate);
         }
       } catch (error) {
         console.error("Erro ao adicionar data:", error);
@@ -156,6 +139,7 @@ export default function ClassAnalytics() {
     }
   };
 
+  // Exclui data com confirmação
   const deleteDate = async (id) => {
     if (window.confirm("Deseja realmente excluir essa data?")) {
       try {
@@ -168,9 +152,7 @@ export default function ClassAnalytics() {
         });
         if (res.ok) {
           setDates(dates.filter((d) => d._id !== id));
-          if (selectedDate && selectedDate._id === id) {
-            setSelectedDate(null);
-          }
+          if (selectedDate && selectedDate._id === id) setSelectedDate(null);
         }
       } catch (error) {
         console.error("Erro ao excluir data:", error);
@@ -178,28 +160,22 @@ export default function ClassAnalytics() {
     }
   };
 
+  // Alterna seleção de data
   const selectDate = (dateObj) => {
-    setSelectedDate(
-      selectedDate && selectedDate._id === dateObj._id ? null : dateObj
+    setSelectedDate((prev) =>
+      prev && prev._id === dateObj._id ? null : dateObj
     );
   };
 
-  // Redireciona para /emotion-selection/:classId/:studentId
+  // Redireciona para seleção de emoção
   const selectStudent = (student) => {
     navigate(`/emotion-selection/${classId}/${student._id}`);
   };
 
   return (
     <main className="container mx-auto mt-2 shadow p-4 rounded-b-sm">
-      {/* Título com o nome da turma */}
       <h1 className="text-3xl font-bold text-center mb-4">{className}</h1>
-      <div className="flex items-center">
-        <input
-          type="date"
-          value={newDate}
-          onChange={(e) => setNewDate(e.target.value)}
-          className="mr-2 p-2 border text-[#262A56] rounded"
-        />
+      <div className="flex items-center mb-4">
         <button
           onClick={addDate}
           className="bg-[#F4E5D0] text-black py-2 px-8 rounded cursor-pointer"
@@ -207,82 +183,83 @@ export default function ClassAnalytics() {
           Adicionar Data
         </button>
       </div>
-      <div className="mt-4">
-        {dates.map((dateObj) => (
-          <div key={dateObj._id}>
-            <div className="flex items-center gap-2">
-              <button
-                className="mt-2 text-black py-2 px-4 rounded cursor-pointer flex items-center"
-                onClick={() => selectDate(dateObj)}
-              >
-                {formatDate(dateObj.date)}
-                <span className="ml-2">
-                  {selectedDate && selectedDate._id === dateObj._id ? (
-                    <FaArrowAltCircleDown />
-                  ) : (
-                    <FaArrowAltCircleRight />
-                  )}
-                </span>
-              </button>
-              <button
-                onClick={() => deleteDate(dateObj._id)}
-                className="mt-2 text-[#B8621B] hover:underline cursor-pointer"
-              >
-                Excluir
-              </button>
-            </div>
-            {selectedDate && selectedDate._id === dateObj._id && (
-              <div
-                className="mt-2 transition-all duration-300 ease-in-out"
-                style={{ overflow: "hidden" }}
-              >
-                {/* Lista de Alunos */}
-                <div className="flex gap-4 flex-wrap">
-                  {students.map((student, i) => (
-                    <div key={i} className="p-2 bg-[#F4E5D0] rounded-sm">
-                      <p
-                        className="cursor-pointer"
-                        onClick={() => selectStudent(student)}
-                      >
-                        {student.name}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                {/* Barra de Progresso das Emoções */}
-                <div className="grid grid-cols-4 gap-6 mt-4">
-                  {fixedEmotions.map(({ label, image }) => {
-                    const voteCount = votes[label] || 0;
-                    const totalStudents = students.length;
-                    const percentage = totalStudents
-                      ? (voteCount / totalStudents) * 100
-                      : 0;
-                    return (
-                      <div key={label} className="text-center">
-                        <img
-                          src={image}
-                          alt={label}
-                          className="mx-auto w-12 h-12"
-                        />
-                        <div className="relative h-4 w-full bg-[#F4E5D0] mt-2 rounded-md">
-                          <div
-                            className="h-full bg-[#262A56] rounded-md"
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                          <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-[#B8621B]">
-                            {voteCount}/{totalStudents}
-                          </span>
-                        </div>
-                        <p>{label}</p>
-                      </div>
-                    );
-                  })}
-                </div>
+      {dates.length === 0 ? (
+        <p className="text-center text-black text-lg">
+          Crie uma data para iniciar a seleção de sentimentos
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {dates.map((dateObj) => (
+            <div key={dateObj._id}>
+              <div className="flex items-center gap-2">
+                <button
+                  className="flex items-center text-black py-2 px-4 rounded cursor-pointer"
+                  onClick={() => selectDate(dateObj)}
+                >
+                  {formatDate(dateObj.date)}
+                  <span className="ml-2">
+                    {selectedDate && selectedDate._id === dateObj._id ? (
+                      <FaArrowAltCircleDown />
+                    ) : (
+                      <FaArrowAltCircleRight />
+                    )}
+                  </span>
+                </button>
+                <button
+                  onClick={() => deleteDate(dateObj._id)}
+                  className="text-[#B8621B] hover:underline cursor-pointer"
+                >
+                  Excluir
+                </button>
               </div>
-            )}
-          </div>
-        ))}
-      </div>
+              {selectedDate && selectedDate._id === dateObj._id && (
+                <div className="mt-2 transition-all duration-300 ease-in-out overflow-hidden">
+                  <div className="flex gap-4 flex-wrap">
+                    {students.map((student, i) => (
+                      <div key={i} className="p-2 bg-[#F4E5D0] rounded-sm">
+                        <p
+                          className="cursor-pointer"
+                          onClick={() => selectStudent(student)}
+                        >
+                          {student.name}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-4 gap-6 mt-4">
+                    {fixedEmotions.map(({ label, image }) => {
+                      const voteCount = votes[label] || 0;
+                      const totalStudents = students.length;
+                      const percentage = totalStudents
+                        ? (voteCount / totalStudents) * 100
+                        : 0;
+                      return (
+                        <div key={label} className="text-center">
+                          <img
+                            src={image}
+                            alt={label}
+                            className="mx-auto w-12 h-12"
+                          />
+                          <div className="relative h-4 w-full bg-[#F4E5D0] mt-2 rounded-md">
+                            <div
+                              className="h-full bg-[#262A56] rounded-md"
+                              style={{ width: `${percentage}%` }}
+                            />
+                            <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-[#B8621B]">
+                              {voteCount}/{totalStudents}
+                            </span>
+                          </div>
+                          <p>{label}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </main>
   );
 }
