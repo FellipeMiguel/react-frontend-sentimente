@@ -46,6 +46,7 @@ const formatDate = (dateStr) => {
 
 export default function ClassAnalytics() {
   const { classId: paramClassId } = useParams();
+  // eslint-disable-next-line no-unused-vars
   const [classId, setClassId] = useState(paramClassId || null);
   const [className, setClassName] = useState("");
   const [students, setStudents] = useState([]);
@@ -175,12 +176,18 @@ export default function ClassAnalytics() {
   return (
     <main className="container mx-auto mt-2 shadow p-4 rounded-b-sm">
       <h1 className="text-3xl font-bold text-center mb-4">{className}</h1>
-      <div className="flex items-center mb-4">
+      <div className="flex items-center mb-4 gap-4">
         <button
           onClick={addDate}
           className="bg-[#F4E5D0] text-black py-2 px-8 rounded cursor-pointer"
         >
           Adicionar Data
+        </button>
+        <button
+          onClick={() => navigate(`/class-students/${classId}`)}
+          className="bg-[#262A56] text-white py-2 px-6 rounded cursor-pointer hover:bg-[#1f2548]"
+        >
+          Ver Alunos
         </button>
       </div>
       {dates.length === 0 ? (
