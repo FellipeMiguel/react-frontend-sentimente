@@ -43,8 +43,15 @@ export default function EmotionSelection() {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleEmotionClick = async (emotion) => {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    setError("");
+    setMessage("");
+
     const token = localStorage.getItem("token");
     if (!token) {
       setError("User not authenticated.");
@@ -73,6 +80,7 @@ export default function EmotionSelection() {
       const data = await response.json();
       if (!response.ok) {
         setError(data.error || "Failed to record emotion.");
+        setIsSubmitting(false);
       } else {
         setMessage("Emotion recorded successfully!");
         // Redireciona para ClassAnalytics após 1,5 segundos
@@ -83,6 +91,7 @@ export default function EmotionSelection() {
     } catch (err) {
       console.error("Error connecting to server:", err);
       setError("Error connecting to server.");
+      setIsSubmitting(false);
     }
   };
 

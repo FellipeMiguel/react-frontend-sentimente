@@ -8,6 +8,7 @@ import CreateClass from "./pages/CreateClass";
 import Classes from "./pages/Classes";
 import ClassAnalytics from "./pages/ClassAnalytics";
 import EmotionSelection from "./pages/EmotionSelection";
+import StudentDetails from "./pages/StudentDetails";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
             element={<EmotionSelection />}
           />
           <Route path="*" element={<Navigate to="/login" />} />
+          <Route path="/class-students/:classId" element={<StudentDetails />} />
         </Routes>
       </div>
       <Footer />
